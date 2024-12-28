@@ -1,0 +1,9 @@
+# Programmer : Shoniyozov Imronbek
+# Filename : requirements.txt
+# Description : List of dependencies required for the bot
+
+
+
+pyTelegramBotAPI==4.12.0  #Telegram bot framework
+python-dotenv==1.0.0    # To load environment variables from .env
+sqlite3                 # For database interactions (built into Python)
