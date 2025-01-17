@@ -27,23 +27,23 @@ ANONYMOUS_STATE = {}
 STATE["user_data"] = {}  # Initialize user_data so it's always available
 
 
-WORKPLACE_OPTIONS = [
-    "NAVBAHOR TEKSTIL MCHJ ",
-    "PTK (PAXTA TOZALASH KORXONASI)",
-    "QISHLOQ XO'JALIGI BO'LIMI",
-    "MTP (QISHLOQ XO'JALIK TEXNIKASI VA MEXANIZATSIYA XIZMATI)",
-    "KORXONA OLDI PTM (PAXTA TAYYORLASH MASKANI)",
-    "G XASANOV PTM (PAXTA TAYYORLASH MASKANI)",
-    "IJAND PTM (PAXTA TAYYORLASH MASKANI)",
-    "BHR SPINNING MCHJ"
-    "BAHAR MILK  MCHJ (CHORVACHILIK BO'LIMI)"
-    "QORAJON TEKSTIL MCHJ"
-    "BHR BETA TEKS MCHJ"
-    "BHR OUTPUT MCHJ"
-    "SAMARQAND COTTON CLASTER MCHJ"
-    "FORTUNA TEKSTIL  MCHJ" 
-    "ARAL ECO SPIN  MCHJ" 
-]
+WORKPLACE_OPTIONS = {
+    "navbahor_tekstile": "NAVBAHOR TEKSTIL MCHJ",
+    "ptk": "PTK (PAXTA TOZALASH KORXONASI)",
+    "qishloq_xojalik": "QISHLOQ XO'JALIGI BO'LIMI",
+    "mtp": "MTP (QISHLOQ XO'JALIK TEXNIKASI VA MEXANIZATSIYA XIZMATI)",
+    "korxona_oldi_ptm": "KORXONA OLDI PTM (PAXTA TAYYORLASH MASKANI)",
+    "g_xasanov_ptm": "G XASANOV PTM (PAXTA TAYYORLASH MASKANI)",
+    "ijand_ptm": "IJAND PTM (PAXTA TAYYORLASH MASKANI)",
+    "bhr_spinning": "BHR SPINNING MCHJ",
+    "bahar_milk": "BAHAR MILK MCHJ (CHORVACHILIK BO'LIMI)",
+    "qorajon_tekstile": "QORAJON TEKSTIL MCHJ",
+    "bhr_beta_teks": "BHR BETA TEKS MCHJ",
+    "bhr_output": "BHR OUTPUT MCHJ",
+    "samarqand_claster": "SAMARQAND COTTON CLASTER MCHJ",
+    "fortuna_tekstile": "FORTUNA TEKSTIL MCHJ",
+    "aral_eco_spin": "ARAL ECO SPIN MCHJ"
+}
 
 
 
@@ -82,8 +82,8 @@ def register_handlers(bot: TeleBot):
         elif call.data == "submit_anonymous":
             ANONYMOUS_STATE[user_id] = "awaiting_workplace"
             markup = types.InlineKeyboardMarkup(row_width=1)
-            for workplace in WORKPLACE_OPTIONS:
-                markup.add(types.InlineKeyboardButton(workplace, callback_data=f"workplace_{workplace}"))
+            for key, name in WORKPLACE_OPTIONS.items():
+                markup.add(types.InlineKeyboardButton(name, callback_data=f"workplace_{key}"))
             markup.add(types.InlineKeyboardButton("⬅ Ortga", callback_data="back_to_start"))
             bot.send_message(
                 call.message.chat.id,
@@ -169,8 +169,8 @@ def register_handlers(bot: TeleBot):
                 inquiry_type = "unknown"
 
             markup = types.InlineKeyboardMarkup(row_width=1)
-            for workplace in WORKPLACE_OPTIONS:
-                markup.add(types.InlineKeyboardButton(workplace, callback_data=f"workplace_{workplace}"))
+            for key, name in WORKPLACE_OPTIONS.items():
+                markup.add(types.InlineKeyboardButton(name, callback_data=f"workplace_{key}"))
             markup.add(types.InlineKeyboardButton("⬅ Ortga", callback_data="back_to_start"))
             bot.send_message(
                 call.message.chat.id,
@@ -332,15 +332,18 @@ def register_handlers(bot: TeleBot):
     @bot.callback_query_handler(func=lambda call: call.data.startswith("workplace_"))
     def handle_workplace_selection(call):
         user_id = call.from_user.id
-        workplace = call.data.split("_", 1)[1]
+        key = call.data.split("_", 1)[1]  # Extract the short key
+        workplace = WORKPLACE_OPTIONS.get(key)
 
         # Validate workplace selection
-        if workplace not in WORKPLACE_OPTIONS:
+        if not workplace:
             bot.answer_callback_query(
                 call.id, "Noto'g'ri tanlov, iltimos qayta urinib ko'ring.", show_alert=True
             )
-            logger.warning(f"User {user_id} selected an invalid workplace: {workplace}")
+            logger.warning(f"User {user_id} selected an invalid workplace: {key}")
             return
+
+        STATE["user_data"][user_id]["workplace"] = workplace
 
         # Ensure user_data is initialized for the user
         if "user_data" not in STATE:

@@ -26,23 +26,23 @@ logger.setLevel(logging.INFO)
 ADMIN_STATE = {}
 
 
-WORKPLACE_OPTIONS = [
-    "NAVBAHOR TEKSTIL MCHJ ",
-    "PTK (PAXTA TOZALASH KORXONASI)",
-    "QISHLOQ XO'JALIGI BO'LIMI",
-    "MTP (QISHLOQ XO'JALIK TEXNIKASI VA MEXANIZATSIYA XIZMATI)",
-    "KORXONA OLDI PTM (PAXTA TAYYORLASH MASKANI)",
-    "G XASANOV PTM (PAXTA TAYYORLASH MASKANI)",
-    "IJAND PTM (PAXTA TAYYORLASH MASKANI)",
-    "BHR SPINNING MCHJ"
-    "BAHAR MILK  MCHJ (CHORVACHILIK BO'LIMI)"
-    "QORAJON TEKSTIL MCHJ"
-    "BHR BETA TEKS MCHJ"
-    "BHR OUTPUT MCHJ"
-    "SAMARQAND COTTON CLASTER MCHJ"
-    "FORTUNA TEKSTIL  MCHJ" 
-    "ARAL ECO SPIN  MCHJ" 
-]
+WORKPLACE_OPTIONS = {
+    "navbahor_tekstile": "NAVBAHOR TEKSTIL MCHJ",
+    "ptk": "PTK (PAXTA TOZALASH KORXONASI)",
+    "qishloq_xojalik": "QISHLOQ XO'JALIGI BO'LIMI",
+    "mtp": "MTP (QISHLOQ XO'JALIK TEXNIKASI VA MEXANIZATSIYA XIZMATI)",
+    "korxona_oldi_ptm": "KORXONA OLDI PTM (PAXTA TAYYORLASH MASKANI)",
+    "g_xasanov_ptm": "G XASANOV PTM (PAXTA TAYYORLASH MASKANI)",
+    "ijand_ptm": "IJAND PTM (PAXTA TAYYORLASH MASKANI)",
+    "bhr_spinning": "BHR SPINNING MCHJ",
+    "bahar_milk": "BAHAR MILK MCHJ (CHORVACHILIK BO'LIMI)",
+    "qorajon_tekstile": "QORAJON TEKSTIL MCHJ",
+    "bhr_beta_teks": "BHR BETA TEKS MCHJ",
+    "bhr_output": "BHR OUTPUT MCHJ",
+    "samarqand_claster": "SAMARQAND COTTON CLASTER MCHJ",
+    "fortuna_tekstile": "FORTUNA TEKSTIL MCHJ",
+    "aral_eco_spin": "ARAL ECO SPIN MCHJ"
+}
 
 
 FILTER_OPTIONS = [
@@ -153,8 +153,8 @@ def register_handlers(bot: TeleBot, user_bot_ref: TeleBot):
         
         elif data == "filter_workplace":
             markup = types.InlineKeyboardMarkup()
-            for workplace in WORKPLACE_OPTIONS:
-                markup.add(types.InlineKeyboardButton(workplace, callback_data=f"filter_workplace_{workplace}"))
+            for key, name in WORKPLACE_OPTIONS.items():
+                markup.add(types.InlineKeyboardButton(name, callback_data=f"filter_workplace_{key}"))
             markup.add(types.InlineKeyboardButton("⬅ Ortga", callback_data="back_to_filter_main"))
             bot.send_message(
                 call.message.chat.id,
@@ -163,15 +163,21 @@ def register_handlers(bot: TeleBot, user_bot_ref: TeleBot):
             )
         
         elif data.startswith("filter_workplace_"):
-            workplace = data.split("_", 2)[2]
+            key = data.split("_", 2)[2]
+            workplace = WORKPLACE_OPTIONS.get(key)
+            if not workplace:
+                bot.send_message(call.message.chat.id, "❌ Ish joyi aniqlanmadi.")
+                return
+
             inquiries = get_inquiries_by_workplace(workplace)
             if not inquiries:
                 bot.send_message(call.message.chat.id, f"❌ {workplace} ish joyi uchun so'rov topilmadi.")
                 return
+
             msg = f"**{workplace} Ish Joyi Bo'yicha So'rovlari**\n\n"
             for r in inquiries:
                 msg += f"**ID**: {r[0]} | **Status**: {r[3]}\n"
-            bot.send_message(call.message.chat.id, msg, parse_mode="Markdown")
+                bot.send_message(call.message.chat.id, msg, parse_mode="Markdown")
         
         elif data == "filter_get_info":
             ADMIN_STATE[call.from_user.id] = {"action": "get_info"}
