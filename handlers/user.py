@@ -343,13 +343,11 @@ def register_handlers(bot: TeleBot):
             logger.warning(f"User {user_id} selected an invalid workplace: {key}")
             return
 
-        STATE["user_data"][user_id]["workplace"] = workplace
-
         # Ensure user_data is initialized for the user
         if "user_data" not in STATE:
             STATE["user_data"] = {}
         if user_id not in STATE["user_data"]:
-            STATE["user_data"][user_id] = {}
+            STATE["user_data"][user_id] = {}  # Initialize user data for this user
 
         # Set the workplace in the user's data
         STATE["user_data"][user_id]["workplace"] = workplace
@@ -376,7 +374,6 @@ def register_handlers(bot: TeleBot):
             logger.error(f"User {user_id} is in an unknown state during workplace selection.")
 
         bot.answer_callback_query(call.id)
-
 
 
     @bot.message_handler(func=lambda message: message.text == "⬅ Ortga")
